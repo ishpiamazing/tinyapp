@@ -1,12 +1,18 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
-//  tells the Express app to use EJS as its templating engine
-app.set("view engine", "ejs");
+
+const cookieParser = require('cookie-parser') // cookie parser 
+
+app.set("view engine", "ejs");//  tells the Express app to use EJS as its templating engine
+
+
 
 //Adding middleware to convert data into human readable-form
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
+
+app.use(cookieParser());
 
 //Generate a Random ShortURL
 function generateRandomString() {
@@ -33,19 +39,20 @@ app.get("/hello", (req, res) => {
 
 // Addding a route for /urls
 app.get("/urls", (req, res) => {
-  let templateVars = {urls: urlDatabase };
+  let templateVars = {username: req.cookies["username"], urls: urlDatabase };
   res.render("urls_index", templateVars);
 })
 
 //Add a GET Route to Show the Form
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  let templateVars = {username: req.cookies["username"]};
+  res.render("urls_new", templateVars);
 });
 
 //Adding a Second Route and Template
 app.get("/urls/:shortURL", (req, res) => {
   
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  let templateVars = {username: req.cookies["username"], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
 });
 
@@ -78,6 +85,16 @@ app.post("/urls/:shortURL/delete",(req, res) => {
 })
 
 
+// POST request which contains "Set-Cookie" in the header
+app.post("/login",(req, res) => {
+  console.log(req.body.username)
+res.cookie("username", req.body.username);
+res.redirect("/urls")
+})
+
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+
