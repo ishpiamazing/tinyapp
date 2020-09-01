@@ -82,15 +82,24 @@ app.post("/urls/:shortURL/delete",(req, res) => {
 
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls");
-})
+});
 
 
-// POST request which contains "Set-Cookie" in the header
+
+
+// POST request which contains the login username
 app.post("/login",(req, res) => {
-  console.log(req.body.username)
-res.cookie("username", req.body.username);
-res.redirect("/urls")
-})
+  
+  res.cookie("username", req.body.username);
+  res.redirect("/urls")
+});
+
+//logout code
+app.post("/logout", (req, res) => {
+  
+  res.clearCookie('username',req.cookies["username"]);
+  res.redirect("/urls");
+});
 
 
 app.listen(PORT, () => {
