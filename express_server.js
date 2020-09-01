@@ -2,9 +2,12 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 
+
+//Generate a Random ShortURL
 function generateRandomString() {
 
   const id = Math.random().toString(36).substring(2,8);
+  return id;
 }
 
 
@@ -45,14 +48,26 @@ app.get("/urls/new", (req, res) => {
 
 //Adding a Second Route and Template
 app.get("/urls/:shortURL", (req, res) => {
+  shortURL = req.params.shortURL;
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
+  // res.redirect(`/u/${shortURL}`)
 });
 
 //Add a POST Route to Receive the Form Submission
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  //res.send("Ok");
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = req.body.longURL; 
+  res.redirect(`/urls/${shortURL}`);
+  
+});
+
+//Adding short url and redirected to long url
+app.get("/u/:shortURL", (req, res) => {
+  
+  res.redirect(urlDatabase[req.params.shortURL])
 });
 
 
