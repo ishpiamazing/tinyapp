@@ -48,7 +48,7 @@ app.get("/urls/new", (req, res) => {
 
 //Adding a Second Route and Template
 app.get("/urls/:shortURL", (req, res) => {
-  shortURL = req.params.shortURL;
+  //shortURL = req.params.shortURL;
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
   // res.redirect(`/u/${shortURL}`)
@@ -64,10 +64,10 @@ app.post("/urls", (req, res) => {
   
 });
 
-//Adding short url and redirected to long url
+//Adding short url and redirecting to long url
 app.get("/u/:shortURL", (req, res) => {
   
-  res.redirect(urlDatabase[req.params.shortURL])
+  res.redirect(`${urlDatabase[req.params.shortURL]}`);
 });
 
 
