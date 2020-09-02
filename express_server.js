@@ -2,17 +2,36 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 
-const cookieParser = require('cookie-parser') // cookie parser 
+const bodyParser = require("body-parser"); // body-parser
+const cookieParser = require('cookie-parser'); // cookie parser 
 
 app.set("view engine", "ejs");//  tells the Express app to use EJS as its templating engine
 
 
+//Adding middleware to convert data into a readable-format
 
-//Adding middleware to convert data into human readable-form
-const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
-
 app.use(cookieParser());
+
+//object containing short url as key and long url as value
+const urlDatabase = {
+  "b2xVn2": "http://www.lighthouselabs.ca",
+  "9sm5xK": "http://www.google.com"
+};
+
+//object containing user details
+const users = { 
+  abc123: {
+    id: "abc123", 
+    email: "abc@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+  cde456: {
+    id: "cde456", 
+    email: "cde@example.com", 
+    password: "dishwasher-funk"
+  }
+}
 
 //Generate a Random ShortURL
 function generateRandomString() {
@@ -20,10 +39,7 @@ function generateRandomString() {
   return id;
 }
 
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
+
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -37,24 +53,40 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-// Addding a route for /urls
+// Add a route for /urls
 app.get("/urls", (req, res) => {
-  let templateVars = {username: req.cookies["username"], urls: urlDatabase };
+  let templateVars ={user_id : users[req.cookies["user_id"]], urls: urlDatabase};
+  //let templateVars = {username: req.cookies["username"], urls: urlDatabase };
   res.render("urls_index", templateVars);
 })
 
 //Add a GET Route to Show the Form
 app.get("/urls/new", (req, res) => {
-  let templateVars = {username: req.cookies["username"]};
+  let templateVars ={user_id : users[req.cookies["user_id"]]};
+  //let templateVars = {username: req.cookies["username"]};
   res.render("urls_new", templateVars);
 });
 
-//Adding a Second Route and Template
+//Add a Second Route and Template
 app.get("/urls/:shortURL", (req, res) => {
-  
-  let templateVars = {username: req.cookies["username"], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  let templateVars ={user_id : users[req.cookies["user_id"]], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  //let templateVars = {username: req.cookies["username"], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
 });
+
+//Add short url and redirect to long url
+app.get("/u/:shortURL", (req, res) => {
+  
+  res.redirect(`${urlDatabase[req.params.shortURL]}`);
+});
+
+// GET method route to view registration form
+app.get("/register", (req, res) => {
+  let templateVars ={user_id : users[req.cookies["user_id"]]};
+  //let templateVars ={user_id : req.cookies["user_id"]};
+  // console.log(templateVars)
+  res.render("user_reg", templateVars);
+})
 
 //Add a POST Route to Receive the Form Submission
 app.post("/urls", (req, res) => {
@@ -64,20 +96,17 @@ app.post("/urls", (req, res) => {
   
 });
 
-//Adding short url and redirecting to long url
-app.get("/u/:shortURL", (req, res) => {
-  
-  res.redirect(`${urlDatabase[req.params.shortURL]}`);
-});
 
-//updating urls
+
+
+//update urls
 app.post("/urls/:id", (req, res)=> {
   const id = req.params.id;
   urlDatabase[id] = req.body.longURL;
   res.redirect("/urls");
 })
 
-// deleting short url's
+// delete short url's
 app.post("/urls/:shortURL/delete",(req, res) => {
 
   delete urlDatabase[req.params.shortURL];
@@ -94,12 +123,30 @@ app.post("/login",(req, res) => {
   res.redirect("/urls")
 });
 
-//logout code
+//logout username code
 app.post("/logout", (req, res) => {
-  
-  res.clearCookie('username',req.cookies["username"]);
+  res.clearCookie('user_id', req.cookies["user_id"]);
+  //res.clearCookie('username',req.cookies["username"]);
   res.redirect("/urls");
 });
+
+//Registration page POST method
+//which saves the information entered by the user
+app.post("/register", (req, res) => {
+  let user_id = generateRandomString();
+  req.cookies.user_id = user_id;
+  user_id = req.cookies.user_id;
+  users[user_id] = {
+    "id" : user_id,
+    "email" : req.body.email,
+    "password" : req.body.password
+  };
+
+   res.cookie("user_id", req.cookies.user_id);
+ 
+
+  res.redirect("/urls");
+})
 
 
 app.listen(PORT, () => {
