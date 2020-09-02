@@ -133,19 +133,31 @@ app.post("/logout", (req, res) => {
 //Registration page POST method
 //which saves the information entered by the user
 app.post("/register", (req, res) => {
-  let user_id = generateRandomString();
-  req.cookies.user_id = user_id;
-  user_id = req.cookies.user_id;
-  users[user_id] = {
-    "id" : user_id,
-    "email" : req.body.email,
-    "password" : req.body.password
-  };
-
-   res.cookie("user_id", req.cookies.user_id);
- 
-
-  res.redirect("/urls");
+  let email = req.body.email;
+  let password = req.body.password;
+  //check if the email and password are not entered
+  if(email === "" || password === "") {
+    res.sendStatus(400);
+    return;
+  }
+  //checking whether the email exists earlier 
+  for(let user in users) {
+    if(users[user].email === req.body.email) {
+      res.sendStatus(400);
+      return;
+    }
+    let user_id = generateRandomString();
+    req.cookies.user_id = user_id;
+    user_id = req.cookies.user_id;
+    users[user_id] = {
+      "id" : user_id,
+      "email" : req.body.email,
+      "password" : req.body.password
+    };
+   
+    }
+    res.cookie("user_id", req.cookies.user_id);
+    res.redirect("/urls");   
 })
 
 
