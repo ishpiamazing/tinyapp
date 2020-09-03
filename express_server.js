@@ -39,6 +39,21 @@ function generateRandomString() {
   return id;
 }
 
+//Fetch URLs for User
+function urlsForUser(id){
+  let urls = {};
+ 
+  for(key in urlDatabase){
+    
+    if(urlDatabase[key].userID === id){
+      
+      urls[key] = {"longURL": urlDatabase[key].longURL, "userID": id };
+    }
+  }
+    
+  return urls;
+}
+
 
 
   const getUserByEmail = function(email) {
@@ -81,10 +96,21 @@ app.get("/hello", (req, res) => {
 
 // Add a route for /urls
 app.get("/urls", (req, res) => {
-  let templateVars ={user_id : users[req.cookies["user_id"]], urls: urlDatabase};
-  console.log(urlDatabase);
-  console.log(users);
-  res.render("urls_index", templateVars);
+  
+  if(req.cookies["user_id"]){
+    
+    let userURLs = urlsForUser(req.cookies["user_id"]);
+    
+    let templateVars ={user_id : users[req.cookies["user_id"]], urls: userURLs};
+
+    res.render("urls_index", templateVars);
+  }
+
+  else {
+    let templateVars = {user_id:req.cookies["user_id"] }
+    res.render("intro", templateVars);
+  }
+
 })
 
 //Add a GET Route to Show the Form
@@ -106,15 +132,29 @@ app.get("/login",(req, res) => {
 
 //Add a Second Route and Template
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars ={user_id : users[req.cookies["user_id"]], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL};
 
-  res.render("urls_show", templateVars);
+  let userURLs = urlsForUser(req.cookies["user_id"]);
+    let flag = true;
+    for (let key in userURLs){
+      if(key === req.params.shortURL){
+
+        let templateVars ={user_id : users[req.cookies["user_id"]], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL};
+        res.render("urls_show", templateVars);
+        flag = false;
+      }
+    }
+    if(flag) {
+      res.send("Not Authorized to Edit");
+    }
+
+
+
+  
 });
 
 //Add short url and redirect to long url
 app.get("/u/:shortURL", (req, res) => {
-  console.log(urlDatabase[req.params.shortURL.longURL])
-  // res.redirect(`${urlDatabase[req.params.shortURL]}`);
+  
   let longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
@@ -128,14 +168,7 @@ app.get("/register", (req, res) => {
 //Add a POST Route to Receive the Form Submission
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
-  // let user_id = req.cookie["user_id"];
-  //urlDatabase[shortURL] = req.body.longURL; 
-  console.log("********");
-  // console.log(req.body.longURL);
-  // console.log(req.session);
-  console.log(req.cookies["user_id"]);
-  // console.log(user_id);
-  console.log("********");
+  
   urlDatabase[shortURL] = {
     longURL : req.body.longURL,
     userID : req.cookies["user_id"]
@@ -156,11 +189,27 @@ app.post("/urls/:id", (req, res)=> {
 
 // delete short url's
 app.post("/urls/:shortURL/delete",(req, res) => {
-
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls");
 });
 
+app.get(
+  "/urls/:shortURL/delete",(req, res) => {
+    let userURLs = urlsForUser(req.cookies["user_id"]);
+    let flag = true;
+    for (let key in userURLs){
+      if(key === req.params.shortURL){
+        delete urlDatabase[req.params.shortURL];
+        flag = false;
+        res.redirect("/urls");
+      }
+    }
+    if(flag) {
+      res.send("Not Authorized to Delete");
+    }
+   
+  }
+);
 
 
 
