@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 
+const bcrypt = require('bcrypt');//for hashing the password
 const bodyParser = require("body-parser"); // body-parser
 const cookieParser = require('cookie-parser'); // cookie parser 
 
@@ -66,13 +67,13 @@ function urlsForUser(id){
   };
 
 
-// Check for correct login credential
+// Check for correct login credentials
 const authenticateUser = (email, password) => {
   // Does the user with that email exist?
   const user = getUserByEmail(email);
 
-  // check the email and passord match
-  if (user && user.password === password) {
+  // check the email and password match
+  if (user && bcrypt.compareSync(password,user.password)) {
     return user.id;
   } else {
     return false;
@@ -255,13 +256,14 @@ app.post("/register", (req, res) => {
     users[user_id] = {
       "id" : user_id,
       "email" : req.body.email,
-      "password" : req.body.password
+      "password" : bcrypt.hashSync(req.body.password, 10) // hash password using bcrypt.hashSync
     };
+    console.log(users[user_id]);
     res.cookie("user_id", req.cookies.user_id);
     res.redirect("/urls");   
 })
 
-
+//Server listen on port 8080
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
