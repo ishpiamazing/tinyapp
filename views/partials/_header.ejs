@@ -8,24 +8,29 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        
-          
-          <% if(!user_id) {%>
-            <form class="collapse navbar-collapse" action="/register" method="GET" >
-              <!--<input class="form-control" type="text" id="user_id" placeholder="Username">-->
 
-              <button type="submit" class="btn btn-primary">Register</button>&nbsp&nbsp
+          <% if(!user_id) {%>
+            
+            <form class="collapse navbar-collapse" action="/login" method="GET" >
+              <a class="nav-item nav-link" href="/login" >Login</a>
+             </form>
+            <form class="collapse navbar-collapse" action="/register" method="GET" >
+              <a class="nav-item nav-link" href="/register">Register</a></form>
               
+              
+        
               <%} else {%>
                
                 Logged in as : <%=user_id.email%>
             <form class="collapse navbar-collapse" action="/logout" method="POST" >
               
               <button type="logout" class="btn btn-primary">Logout</button>
+
+              
             
             <%} %>
             
-          
+            
         </form>
       </div>
       

@@ -41,6 +41,32 @@ function generateRandomString() {
 
 
 
+  const getUserByEmail = function(email) {
+    for (let user in users) {
+      if (users[user].email === email) {
+        return users[user];
+      }
+    }
+    return false;
+  };
+
+
+// Check for correct login credential
+const authenticateUser = (email, password) => {
+  // Does the user with that email exist?
+  const user = getUserByEmail(email);
+
+  // check the email and passord match
+  if (user && user.password === password) {
+    return user.id;
+  } else {
+    return false;
+  }
+};
+
+
+
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -56,21 +82,24 @@ app.get("/hello", (req, res) => {
 // Add a route for /urls
 app.get("/urls", (req, res) => {
   let templateVars ={user_id : users[req.cookies["user_id"]], urls: urlDatabase};
-  //let templateVars = {username: req.cookies["username"], urls: urlDatabase };
+ 
   res.render("urls_index", templateVars);
 })
 
 //Add a GET Route to Show the Form
 app.get("/urls/new", (req, res) => {
   let templateVars ={user_id : users[req.cookies["user_id"]]};
-  //let templateVars = {username: req.cookies["username"]};
   res.render("urls_new", templateVars);
+});
+
+app.get("/login",(req, res) => {
+  let templateVars ={user_id : users[req.cookies["user_id"]]};
+  res.render("login", templateVars);
 });
 
 //Add a Second Route and Template
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars ={user_id : users[req.cookies["user_id"]], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
-  //let templateVars = {username: req.cookies["username"], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
 });
 
@@ -83,8 +112,6 @@ app.get("/u/:shortURL", (req, res) => {
 // GET method route to view registration form
 app.get("/register", (req, res) => {
   let templateVars ={user_id : users[req.cookies["user_id"]]};
-  //let templateVars ={user_id : req.cookies["user_id"]};
-  // console.log(templateVars)
   res.render("user_reg", templateVars);
 })
 
@@ -116,18 +143,23 @@ app.post("/urls/:shortURL/delete",(req, res) => {
 
 
 
-// POST request which contains the login username
+// POST request for login
 app.post("/login",(req, res) => {
-  
-  res.cookie("username", req.body.username);
-  res.redirect("/urls")
+ 
+  const userId = authenticateUser(req.body.email, req.body.password);
+  if(userId) {
+    res.cookie("user_id" , userId);
+    res.redirect('/urls'); 
+  } else {
+    res.status(403).send("Incorrect email or password");
+  }
 });
 
-//logout username code
+
+// Logout a user and clear cookie
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id', req.cookies["user_id"]);
-  //res.clearCookie('username',req.cookies["username"]);
-  res.redirect("/urls");
+  res.clearCookie("user_id", req.cookies["user_id"]);
+  res.redirect('/urls'); 
 });
 
 //Registration page POST method
