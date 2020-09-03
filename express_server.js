@@ -66,7 +66,7 @@ app.get("/urls/new", (req, res) => {
   let id = users[req.session["user_id"]];
   if(!id) {
     res.redirect("/login")
-  }else {
+  } else {
     res.render("urls_new", templateVars);
   }
   
@@ -91,7 +91,7 @@ app.get("/urls/:shortURL", (req, res) => {
       }
     }
     if(flag) {
-      res.send("Not Authorized to Edit");
+      res.send("<html><body><br><h1><b>Not Authorized!!!<h1></b><br></body></html>\n");
     }
 
 
@@ -101,9 +101,16 @@ app.get("/urls/:shortURL", (req, res) => {
 
 //Add short url and redirect to long url
 app.get("/u/:shortURL", (req, res) => {
-  
-  let longURL = urlDatabase[req.params.shortURL].longURL;
-  res.redirect(longURL);
+  let flag = true;
+  for (let key in urlDatabase){
+    if (key === req.params.shortURL){
+      flag = false;
+      res.redirect(urlDatabase[req.params.shortURL].longURL);
+    }
+  }
+    if(flag){
+      res.send("<html><body><br><h1><b>Short URL Invalid!!!<h1></b><br></body></html>\n");
+    }
 });
 
 // GET method route to view registration form
@@ -152,7 +159,7 @@ app.get(
       }
     }
     if(flag) {
-      res.send("Not Authorized to Delete");
+      res.send("<html><body><br><h1><b>Not Authorized!!!<h1></b><br></body></html>\n");
     }
    
   }
@@ -192,7 +199,8 @@ app.post("/register", (req, res) => {
     return;
   }
 
-  const user = getUserByEmail(email);
+  const user = getUserByEmail(email, users);
+  // console.log(user);
   if (!user) {
     let user_id = generateRandomString();
     users[user_id] = {
