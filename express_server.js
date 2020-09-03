@@ -89,7 +89,13 @@ app.get("/urls", (req, res) => {
 //Add a GET Route to Show the Form
 app.get("/urls/new", (req, res) => {
   let templateVars ={user_id : users[req.cookies["user_id"]]};
-  res.render("urls_new", templateVars);
+  let id = users[req.cookies["user_id"]];
+  if(!id) {
+    res.redirect("/login")
+  }else {
+    res.render("urls_new", templateVars);
+  }
+  
 });
 
 app.get("/login",(req, res) => {
@@ -196,5 +202,3 @@ app.post("/register", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-
