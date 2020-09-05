@@ -67,7 +67,7 @@ if (user && bcrypt.compareSync(password,user.password)) {
 function urlsForUser(id){
   let urls = {};
  
-  for(key in urlDatabase){
+  for(let key in urlDatabase){
     
     if(urlDatabase[key].userID === id){
       
